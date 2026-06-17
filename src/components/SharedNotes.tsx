@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { useTenant } from '../context/TenantContext';
@@ -122,7 +122,7 @@ export default function SharedNotes() {
   }, [showSyncInfo]);
 
   // ── Refs ──────────────────────────────────────────────────────
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveTimerRef = useRef<any | null>(null);
 
   /**
    * SYNCHRONIZATION STRATEGY: Last-Write-Wins + Sequence Numbers
@@ -145,10 +145,10 @@ export default function SharedNotes() {
    * preventing a remote save from overwriting unsaved local keystrokes.
    */
   const isLocallyTypingRef = useRef(false);
-  const localTypingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const localTypingTimerRef = useRef<any | null>(null);
 
   /** Per-user timers that clear the "X is typing" badge after silence */
-  const typingBadgeTimers = useRef<{ [userId: string]: NodeJS.Timeout }>({});
+  const typingBadgeTimers = useRef<{ [userId: string]: any }>({});
 
   /** The active Supabase Realtime channel (Broadcast + Presence) */
   const broadcastChannelRef = useRef<any>(null);

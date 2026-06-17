@@ -3,7 +3,6 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { useTenant } from '../context/TenantContext';
 import { cacheManager } from '../lib/cacheManager';
-import { motion, AnimatePresence } from 'framer-motion';
 import { FiMessageSquare, FiSend, FiTrash2, FiCpu, FiAlertCircle, FiLoader, FiAlertOctagon } from 'react-icons/fi';
 import FeatureGuard from './FeatureGuard';
 import ReportModal from './ReportModal';

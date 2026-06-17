@@ -1,18 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiEye, FiHeart, FiMessageSquare, FiUserCheck, FiBarChart2, FiAlertCircle, FiTrendingUp } from 'react-icons/fi';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { cacheManager } from '../lib/cacheManager';
-
-interface PostStatType {
-  id: number;
-  title: string;
-  created_at: string;
-  likes: { count: number }[] | any;
-  comments: { count: number }[] | any;
-  post_views: { count: number }[] | any;
-}
 
 export default function Analytics() {
   const { user } = useAuth();

@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiFileText, FiShield, FiAlertOctagon, FiTrash2, FiSlash, FiCheckCircle, FiAlertCircle, FiActivity } from 'react-icons/fi';
+import { FiUsers, FiFileText, FiShield, FiAlertOctagon, FiTrash2, FiSlash, FiCheckCircle, FiActivity } from 'react-icons/fi';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import PermissionGuard from '../components/PermissionGuard';
@@ -490,6 +490,12 @@ export default function Admin() {
           <span>Audit Logs</span>
         </button>
       </div>
+
+      {errorMsg && (
+        <div className="error-alert" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '10px', marginBottom: '24px' }}>
+          <span>{errorMsg}</span>
+        </div>
+      )}
 
       {/* Tab Contents */}
       <div className="glass-panel" style={{ padding: '32px', textAlign: 'left' }}>

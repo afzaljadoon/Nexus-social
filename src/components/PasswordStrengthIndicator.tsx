@@ -1,4 +1,3 @@
-import React from 'react';
 import { FiCheck, FiCircle } from 'react-icons/fi';
 
 interface StrengthIndicatorProps {

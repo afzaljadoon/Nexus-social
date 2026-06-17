@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiBookmark, FiAlertCircle, FiClock, FiHeart, FiMessageSquare } from 'react-icons/fi';
 import { Link } from 'react-router-dom';

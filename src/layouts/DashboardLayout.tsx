@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHome, FiUser, FiMessageSquare, FiLogOut, FiMenu, FiX, FiActivity, FiBookmark, FiBell, FiBarChart2, FiShield, FiClock, FiAward, FiBriefcase, FiSend } from 'react-icons/fi';
