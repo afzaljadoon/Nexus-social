@@ -48,7 +48,7 @@ export default function Feed() {
   const { user, onlineUsers } = useAuth();
   const { activeOrg } = useTenant();
 
-  const formatLastSeen = (lastSeenStr: string | null) => {
+  const formatLastSeen = (lastSeenStr: string | null | undefined) => {
     if (!lastSeenStr) return 'Offline';
     const lastSeenDate = new Date(lastSeenStr);
     const diffMs = new Date().getTime() - lastSeenDate.getTime();
@@ -672,6 +672,7 @@ export default function Feed() {
       animate={{ opacity: 1, y: 0 }}
       className="page-container"
       style={{ position: 'relative' }}
+      data-page={page}
     >
       {/* Dynamic Success Toast Notification */}
       <AnimatePresence>

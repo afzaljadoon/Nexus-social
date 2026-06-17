@@ -131,7 +131,7 @@ export default function ManageOrganization() {
   // Handle Invite Member (by username)
   const handleInviteMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeOrg || !inviteUsername.trim()) return;
+    if (!activeOrg || !inviteUsername.trim() || !user) return;
 
     setLoading(true);
     setErrorMsg('');

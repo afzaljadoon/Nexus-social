@@ -54,7 +54,12 @@ export default function Bookmarks() {
       if (error) {
         setErrorMsg(error.message);
       } else {
-        setBookmarks(data || []);
+        const formattedBookmarks = (data as any[] || []).map(item => ({
+          id: item.id,
+          created_at: item.created_at,
+          posts: Array.isArray(item.posts) ? item.posts[0] || null : (item.posts || null)
+        })) as BookmarkType[];
+        setBookmarks(formattedBookmarks);
       }
     } catch (err) {
       setErrorMsg('Failed to load bookmarks.');
@@ -68,7 +73,7 @@ export default function Bookmarks() {
   }, [user]);
 
   // Remove Bookmark
-  const handleRemoveBookmark = async (bookmarkId: number, postId: number) => {
+  const handleRemoveBookmark = async (bookmarkId: number) => {
     // Optimistic UI Update: immediately remove from local state
     const originalBookmarks = [...bookmarks];
     setBookmarks(prev => prev.filter(b => b.id !== bookmarkId));
@@ -86,6 +91,7 @@ export default function Bookmarks() {
       alert('Failed to remove bookmark.');
     }
   };
+
 
   const toggleComments = (postId: number) => {
     setExpandedComments(prev => ({
@@ -202,7 +208,7 @@ export default function Bookmarks() {
 
                     {/* Bookmark Action */}
                     <button
-                      onClick={() => handleRemoveBookmark(bookmark.id, post.id)}
+                      onClick={() => handleRemoveBookmark(bookmark.id)}
                       className="btn btn-secondary"
                       style={{ padding: '8px', borderRadius: '8px', fontSize: '0.9rem', color: 'var(--color-secondary)' }}
                       title="Remove Bookmark"

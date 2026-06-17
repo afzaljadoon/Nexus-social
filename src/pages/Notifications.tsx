@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiBell, FiHeart, FiMessageSquare, FiAlertCircle, FiCheck, FiClock, FiTrash2, FiUserPlus, FiUserMinus } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 

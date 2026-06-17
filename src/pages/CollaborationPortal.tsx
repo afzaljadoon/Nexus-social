@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../hooks/useAuth';
 import { useTenant } from '../context/TenantContext';
@@ -27,7 +27,7 @@ interface SentInvite {
 }
 
 export default function CollaborationPortal() {
-  const { user, profile } = useAuth();
+  const { profile } = useAuth();
   const { activeOrg, memberRole, refreshTenants } = useTenant();
 
   const [loading, setLoading] = useState(false);
