@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: 'dist',
-    minify: 'esbuild',
     sourcemap: false, // Disable sourcemaps in production to optimize size & protect source code
     rollupOptions: {
       output: {
