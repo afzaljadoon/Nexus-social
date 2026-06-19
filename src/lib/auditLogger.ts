@@ -2,8 +2,8 @@ import { supabase } from './supabaseClient';
 
 /**
  * Enterprise Audit Logger:
- * Pushes structured activity events to the `audit_logs` database table.
- * Automatically resolves the active user session ID and email.
+ * Securely dispatches activity events to the `log-audit` Supabase Edge Function.
+ * The Edge Function validates the session JWT token server-side before writing the entry.
  * 
  * Example:
  * logAction('user.ban', 'user-uuid-123', { oldStatus: false, newStatus: true });
@@ -14,33 +14,47 @@ export const logAction = async (
   metadata: Record<string, any> = {}
 ) => {
   try {
-    // 1. Resolve current active user session
+    // 1. Validate active local session before attempting to invoke Edge Function
     const { data: { session } } = await supabase.auth.getSession();
     if (!session || !session.user) {
       console.warn(`Cannot write audit log for action "${action}": No active session.`);
       return;
     }
 
-    const actor = session.user;
-
-    // 2. Write record to Supabase audit_logs table
-    const { error } = await supabase.from('audit_logs').insert([
-      {
+    // 2. Invoke our secure Deno Edge Function
+    const { data, error } = await supabase.functions.invoke('log-audit', {
+      body: {
         action,
-        target_id: targetId,
-        user_id: actor.id,
-        user_email: actor.email || 'unknown@nexus.social',
-        metadata: {
-          ...metadata,
-          client_agent: navigator.userAgent,
-        },
-      },
-    ]);
+        targetId,
+        metadata
+      }
+    });
 
     if (error) {
-      console.error(`Supabase DB reject on writing audit log:`, error.message);
+      console.warn(`Secure Edge Function logging failed: ${error.message}. Checking fallback write...`);
+      
+      // Fallback: If edge function is not deployed in current environment,
+      // fallback to direct client-side DB insert so functionality remains intact.
+      const { error: dbError } = await supabase.from('audit_logs').insert([
+        {
+          action,
+          target_id: targetId,
+          user_id: session.user.id,
+          user_email: session.user.email || 'unknown@nexus.social',
+          metadata: {
+            ...metadata,
+            client_agent: navigator.userAgent,
+            fallback_used: true
+          },
+        },
+      ]);
+      if (dbError) {
+        console.error(`Direct DB insert fallback failed:`, dbError.message);
+      }
+    } else {
+      console.debug('Secure audit log captured via Edge Function:', data);
     }
   } catch (err) {
-    console.error(`Failed to dispatch audit log helper:`, err);
+    console.error(`Failed to dispatch secure audit log:`, err);
   }
 };

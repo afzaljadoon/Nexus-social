@@ -28,6 +28,9 @@ export default function Chat() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<any>(null);
 
+  // Connection status state
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
+
   // Typing state variables
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const [isTyping, setIsTyping] = useState(false);
@@ -35,26 +38,37 @@ export default function Chat() {
 
   // Cache of user profiles to avoid repeated DB calls for real-time messages
   const profileCacheRef = useRef<Record<string, { full_name: string | null; avatar_url: string | null }>>({});
+  // Promise cache to prevent redundant concurrent queries for the same user profile
+  const profilePromisesRef = useRef<Record<string, Promise<{ full_name: string | null; avatar_url: string | null }>>>({});
 
   // Fetch or retrieve a profile from cache/DB
   const getProfileForUser = async (userId: string) => {
     if (profileCacheRef.current[userId]) {
       return profileCacheRef.current[userId];
     }
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('full_name, avatar_url')
-        .eq('id', userId)
-        .single();
-      if (!error && data) {
-        profileCacheRef.current[userId] = data;
-        return data;
-      }
-    } catch (err) {
-      console.error('Error fetching profile for chat:', err);
+    if (profilePromisesRef.current[userId]) {
+      return profilePromisesRef.current[userId];
     }
-    return { full_name: 'Anonymous User', avatar_url: null };
+    const promise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', userId)
+          .single();
+        if (!error && data) {
+          profileCacheRef.current[userId] = data;
+          return data;
+        }
+      } catch (err) {
+        console.error('Error fetching profile for chat:', err);
+      }
+      return { full_name: 'Anonymous User', avatar_url: null };
+    })();
+    profilePromisesRef.current[userId] = promise;
+    const res = await promise;
+    delete profilePromisesRef.current[userId];
+    return res;
   };
 
   // Scroll to bottom helper
@@ -155,7 +169,14 @@ export default function Chat() {
        * Establishes the connection. Once subscribed, the client stays connected via WebSockets,
        * waiting for the database server to broadcast new inserts.
        */
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Realtime chat channel status:', status);
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setConnectionStatus('disconnected');
+        }
+      });
 
     channelRef.current = channel;
 
@@ -245,9 +266,25 @@ export default function Chat() {
       transition={{ duration: 0.4 }}
       className="page-container"
     >
-      <div className="glass-panel page-header-panel">
-        <h2>Cyber Chat</h2>
-        <p className="subtitle">Realtime encrypted conversations with other users</p>
+      <div className="glass-panel page-header-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div>
+          <h2>Cyber Chat</h2>
+          <p className="subtitle">Realtime encrypted conversations with other users</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--surface-border)' }}>
+          <span style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: connectionStatus === 'connected' ? 'var(--success, #10b981)' : connectionStatus === 'connecting' ? '#f59e0b' : '#ef4444',
+            boxShadow: connectionStatus === 'connected' ? '0 0 8px var(--success, #10b981)' : 'none',
+            display: 'inline-block',
+            transition: 'background-color 0.3s ease'
+          }} />
+          <span style={{ color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.02em' }}>
+            {connectionStatus === 'connected' ? 'CONNECTED' : connectionStatus === 'connecting' ? 'SYNCING...' : 'DISCONNECTED'}
+          </span>
+        </div>
       </div>
 
       {errorMsg && (

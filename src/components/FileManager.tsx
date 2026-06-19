@@ -164,21 +164,25 @@ export default function FileManager() {
     try {
       setErrorMsg('');
       
-      // If file, clean up storage object first
-      if (!item.is_folder && item.storage_path) {
-        const { error: storageError } = await supabase.storage
-          .from('workspace-files')
-          .remove([item.storage_path]);
-        if (storageError) throw storageError;
-      }
-
-      // Delete database record (cascades sub-items if folder)
+      // 1. Delete database record first (respects RLS, Cascades automatically)
       const { error: dbError } = await supabase
         .from('workspace_files')
         .delete()
         .eq('id', item.id);
 
       if (dbError) throw dbError;
+
+      // 2. Clean up storage object only after successful DB deletion
+      if (!item.is_folder && item.storage_path) {
+        const { error: storageError } = await supabase.storage
+          .from('workspace-files')
+          .remove([item.storage_path]);
+        if (storageError) {
+          console.warn('Storage cleanup failed after DB delete:', storageError.message);
+          // Do not fail the execution since the DB record is already successfully removed
+        }
+      }
+
       fetchFiles();
     } catch (err: any) {
       console.error('Delete error:', err);
